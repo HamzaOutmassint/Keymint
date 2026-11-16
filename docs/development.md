@@ -144,5 +144,3 @@ When you fix a bug, add a regression test to the suite closest to that behaviour
 
 1. **Dependency audit**: `npm audit` fails on high or critical advisories. It also runs daily.
 2. **Verify**: lint, typecheck, the full test suite (including PostgreSQL tests against a service container), and a production build.
-
-Dependabot opens weekly pull requests for npm updates and monthly ones for GitHub Actions.
