@@ -1,0 +1,62 @@
+# Local PostgreSQL for development:   docker compose up -d postgres
+# Full production-style stack:        docker compose up -d --build
+# See docs/configuration.md for every variable.
+name: keymint
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: keymint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD to a strong URL-safe value}
+      POSTGRES_DB: keymint
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - keymint_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keymint -d keymint"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?Set NEXT_PUBLIC_APP_URL to the public HTTPS origin}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+      - /app/.next/cache:size=128m,noexec,nosuid
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://keymint:${POSTGRES_PASSWORD}@postgres:5432/keymint
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set BETTER_AUTH_URL to the public HTTPS origin}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?Set NEXT_PUBLIC_APP_URL to the public HTTPS origin}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a random authentication secret}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
+      ENABLE_REGISTRATION: ${ENABLE_REGISTRATION:-false}
+      ALLOW_DEMO_SEED: "false"
+      READINESS_TIMEOUT_MS: ${READINESS_TIMEOUT_MS:-5000}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:?Set a verified sender address}
+      RESEND_API_KEY: ${RESEND_API_KEY:?Set the email provider API key}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    command: sh -c "npx prisma migrate deploy && npm start"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/api/ready"]
+      interval: 15s
+      timeout: 6s
+      start_period: 30s
+      retries: 4
+volumes:
+  keymint_postgres:

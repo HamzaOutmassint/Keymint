@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.npm-cache/
+
+# Build output and generated code
+.next/
+out/
+build/
+generated/
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Environment files (keep the documented example)
+.env
+.env*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editors, OS files and local tooling
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+.agents/
+.claude/
+.codex/
+
+# Deployment platforms
+.vercel/

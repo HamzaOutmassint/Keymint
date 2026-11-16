@@ -1,0 +1,2 @@
+export const MAX_IMPORT_CONTENT_BYTES = 4_000_000;
+export const MAX_IMPORT_RECORDS = 500;
