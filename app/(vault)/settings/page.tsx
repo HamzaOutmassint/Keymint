@@ -664,7 +664,8 @@ function SettingsDialogs({
           {values.format === "csv" && (
             <Alert variant="danger">
               CSV exports decrypted data. Store it securely and delete it when
-              you are finished.
+              you are finished. CSV does not include saved recovery codes; use an
+              encrypted backup to keep them.
             </Alert>
           )}
           {values.format === "json" && (

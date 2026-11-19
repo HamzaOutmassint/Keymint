@@ -29,6 +29,7 @@ It is built with Next.js, TypeScript, Better Auth, Prisma, and PostgreSQL.
 - **Encrypted sync.** Revision checks, idempotent mutations, and paginated synchronization keep several devices consistent.
 - **Vault Key rotation.** Re-encrypt the whole vault with a new key in the browser, and resume if interrupted.
 - **Backups and import.** Encrypted `.kmvault` backups, protected by a passphrase or by your Recovery Key, plus CSV import and export.
+- **Third-party recovery codes.** Upload or paste the 2FA recovery codes a service gives you, keep them encrypted inside the matching credential, and mark each one as used.
 - **Everyday tools.** Folders, favourites, local-only search (`Ctrl/⌘ + K`), a password generator, and an activity log.
 
 ## Quick start

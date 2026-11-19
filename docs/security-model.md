@@ -77,7 +77,16 @@ Some protections depend on the browser and the operating system, and cannot be g
 
 - **Clipboard clearing.** Keymint tries to clear a copied password after 30 seconds, but the operating system or a clipboard manager may keep a copy.
 - **Memory erasure.** JavaScript cannot guarantee that keys are erased from memory. The worker is terminated on lock to limit exposure.
-- **CSV exports** are plaintext by design. Prefer encrypted `.kmvault` backups.
+- **CSV exports** are plaintext by design. Prefer encrypted `.kmvault` backups. CSV leaves out third-party recovery codes.
+
+## Third-party recovery codes
+
+Recovery codes for other services are stored in an optional `recoveryCodes` field inside the encrypted credential payload. They are covered by the same AES-GCM record encryption, sync, backup, and rotation as every other credential field. The server cannot tell whether a credential has codes, except through the record size.
+
+- The `.txt` file or pasted text is parsed in the browser. Only the encrypted record is uploaded.
+- Records are strictly validated. A set holds 1 to 64 unique codes of up to 128 characters, without control characters. When a credential has no codes, the field is left out entirely, so records written before this feature are unchanged.
+- The activity log records only that codes were viewed (`RECOVERY_CODES_VIEWED`) or copied (`RECOVERY_CODE_COPIED`), never the codes themselves.
+- Copied codes use the same best-effort 30-second clipboard clearing as passwords.
 
 ## Known limitations and future work
 

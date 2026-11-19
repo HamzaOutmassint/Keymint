@@ -17,6 +17,9 @@ import {
 } from "./password-generator";
 import type { Category, Credential } from "@/types/vault";
 import { useVaultData, useVaultMutations } from "@/features/vault/data";
+import { buildRecoveryCodeSet, remainingRecoveryCodes, withRecoveryCodes } from "@/lib/recovery-codes";
+import type { RecoveryCodeSetV1 } from "@/lib/vault-crypto";
+import { RecoveryCodesImporter } from "./recovery-codes-importer";
 
 type Form = z.input<typeof credentialSchema>;
 type EditData = Partial<Credential> & { password?: string };
@@ -54,6 +57,8 @@ export function CredentialFormModal({
   edit?: EditData;
 }) {
   const [generator, setGenerator] = useState(false);
+  const [recoveryCodes, setRecoveryCodes] = useState<RecoveryCodeSetV1 | null>(open ? edit?.recoveryCodes ?? null : null);
+  const [importingCodes, setImportingCodes] = useState(false);
   const [options, setOptions] = useState<GeneratorOptions>({
     length: 20,
     uppercase: true,
@@ -69,6 +74,14 @@ export function CredentialFormModal({
     resolver: zodResolver(credentialSchema),
     defaultValues: EMPTY_FORM_VALUES,
   });
+  // Recovery codes live outside react-hook-form; resync them whenever the
+  // modal opens, closes, or switches credential (state adjusted during render).
+  const [syncedFor, setSyncedFor] = useState({ open, edit });
+  if (syncedFor.open !== open || syncedFor.edit !== edit) {
+    setSyncedFor({ open, edit });
+    setRecoveryCodes(open ? edit?.recoveryCodes ?? null : null);
+    setImportingCodes(false);
+  }
   useEffect(() => {
     if (!open) {
       form.reset(EMPTY_FORM_VALUES);
@@ -112,7 +125,7 @@ export function CredentialFormModal({
   async function submit(values: Form) {
     try {
       const now = new Date().toISOString();
-      await mutations.saveCredential({
+      await mutations.saveCredential(withRecoveryCodes({
         categoryId: values.categoryId ?? null,
         email: values.email ?? "",
         favorite: values.favorite ?? false,
@@ -123,7 +136,7 @@ export function CredentialFormModal({
         passwordUpdatedAt: edit?.password === values.password && edit.passwordUpdatedAt ? edit.passwordUpdatedAt : now,
         username: values.username,
         website: values.website ?? "",
-      }, edit?.id);
+      }, recoveryCodes), edit?.id);
       toast.success(edit?.id ? "Password updated" : "Password saved");
       closeAndClear();
     } catch (error) {
@@ -354,6 +367,40 @@ export function CredentialFormModal({
             {...form.register("notes")}
           />
         </FormField>
+        <section className="recovery-section" aria-labelledby="credential-recovery-heading">
+          <div className="recovery-section-header">
+            <div>
+              <h3 id="credential-recovery-heading" className="field-label">Recovery codes <span className="recovery-optional">(optional)</span></h3>
+              <p className="recovery-hint">
+                {recoveryCodes
+                  ? `${recoveryCodes.codes.length} codes saved · ${remainingRecoveryCodes(recoveryCodes)} unused. Changes apply when you save.`
+                  : "Keep the backup codes this service gave you when you turned on two-factor authentication."}
+              </p>
+            </div>
+            {!importingCodes && (
+              <div className="recovery-actions">
+                {recoveryCodes && (
+                  <Button type="button" className="btn-small" variant="ghost" onClick={() => setRecoveryCodes(null)}>
+                    Remove
+                  </Button>
+                )}
+                <Button type="button" className="btn-small" onClick={() => setImportingCodes(true)}>
+                  {recoveryCodes ? "Replace codes" : "Add codes"}
+                </Button>
+              </div>
+            )}
+          </div>
+          {importingCodes && (
+            <RecoveryCodesImporter
+              previous={recoveryCodes}
+              onCancel={() => setImportingCodes(false)}
+              onApply={(codes) => {
+                setRecoveryCodes(buildRecoveryCodeSet(codes, recoveryCodes, new Date().toISOString()));
+                setImportingCodes(false);
+              }}
+            />
+          )}
+        </section>
       </form>
     </Modal>
   );
