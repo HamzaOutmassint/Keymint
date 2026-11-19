@@ -32,6 +32,12 @@ import type {
 } from "./types";
 
 export const MAX_RECORD_PLAINTEXT_BYTES = 65536 as const;
+export const MAX_RECOVERY_CODES = 64 as const;
+export const MAX_RECOVERY_CODE_LENGTH = 128 as const;
+
+const CREDENTIAL_KEYS = ["categoryId", "email", "favorite", "lastViewedAt", "name", "notes", "password", "passwordUpdatedAt", "username", "website"] as const;
+// Any C0/C1 control character, including tabs and line breaks.
+const CONTROL_CHARACTER = /[\u0000-\u001f\u007f-\u009f]/;
 export const MAX_RECORD_CIPHERTEXT_BYTES = MAX_RECORD_PLAINTEXT_BYTES + TAG_BYTES;
 
 /** Validates a complete opaque record envelope without decrypting its payload. */
@@ -81,11 +87,14 @@ function assertNullableIdentifier(value: unknown, field: string): void {
 
 /** Strictly validates the credential value schema and field bounds. */
 function validateCredentialValue(value: unknown): void {
+  // Credentials written before recovery codes existed omit the field entirely.
+  const hasRecoveryCodes = typeof value === "object" && value !== null && "recoveryCodes" in value;
   assertExactKeys(
     value,
-    ["categoryId", "email", "favorite", "lastViewedAt", "name", "notes", "password", "passwordUpdatedAt", "username", "website"],
+    hasRecoveryCodes ? [...CREDENTIAL_KEYS, "recoveryCodes"] : CREDENTIAL_KEYS,
     "credential value",
   );
+  if (hasRecoveryCodes) validateRecoveryCodeSet(value.recoveryCodes);
   assertNullableIdentifier(value.categoryId, "categoryId");
   assertStringLength(value.email, 0, 254, "email");
   if (typeof value.favorite !== "boolean") throw new TypeError("favorite must be a boolean");
@@ -96,6 +105,32 @@ function validateCredentialValue(value: unknown): void {
   assertTimestamp(value.passwordUpdatedAt, "passwordUpdatedAt");
   assertStringLength(value.username, 0, 255, "username");
   assertStringLength(value.website, 0, 2048, "website");
+}
+
+/** Comparison key for duplicate detection: case- and whitespace-insensitive. */
+export function recoveryCodeIdentity(code: string): string {
+  return code.replace(/\s+/g, "").toLocaleLowerCase("en-US");
+}
+
+/** Strictly validates a credential's stored third-party recovery codes. */
+function validateRecoveryCodeSet(value: unknown): void {
+  assertExactKeys(value, ["codes", "updatedAt"], "recovery code set");
+  assertTimestamp(value.updatedAt, "recovery codes updatedAt");
+  if (!Array.isArray(value.codes) || value.codes.length < 1 || value.codes.length > MAX_RECOVERY_CODES) {
+    throw new RangeError(`recovery codes must contain between 1 and ${MAX_RECOVERY_CODES} codes`);
+  }
+  const seen = new Set<string>();
+  for (const item of value.codes) {
+    assertExactKeys(item, ["code", "usedAt"], "recovery code");
+    assertStringLength(item.code, 1, MAX_RECOVERY_CODE_LENGTH, "recovery code");
+    if (item.code.trim() !== item.code || item.code.trim() === "" || CONTROL_CHARACTER.test(item.code)) {
+      throw new TypeError("recovery code must be trimmed text without control characters");
+    }
+    assertNullableTimestamp(item.usedAt, "recovery code usedAt");
+    const identity = recoveryCodeIdentity(item.code);
+    if (seen.has(identity)) throw new TypeError("recovery codes must not contain duplicates");
+    seen.add(identity);
+  }
 }
 
 /** Strictly validates the category value schema and field bounds. */

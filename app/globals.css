@@ -1912,6 +1912,225 @@ svg {
 .backup-codes-download {
     margin-top: 10px;
 }
+
+/* Third-party 2FA recovery codes stored on credentials */
+.credential-title-line {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+}
+.recovery-badge {
+    flex: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    padding: 1px 7px;
+    font-size: 0.6875rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+.recovery-badge-low {
+    border-color: color-mix(in srgb, var(--warning) 30%, var(--border));
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+.recovery-section {
+    display: grid;
+    gap: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    padding: 14px;
+}
+.recovery-section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+.recovery-section-header h3 {
+    margin: 0;
+}
+.recovery-optional {
+    color: var(--subtle);
+    font-weight: 500;
+}
+.recovery-hint,
+.recovery-summary {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+.recovery-summary {
+    color: var(--text);
+    font-weight: 650;
+}
+.recovery-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.recovery-importer {
+    display: grid;
+    gap: 10px;
+}
+.recovery-dropzone {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--muted);
+    padding: 18px 14px;
+    font-size: 0.8125rem;
+    text-align: center;
+}
+.recovery-dropzone-active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-strong);
+}
+.recovery-paste,
+.recovery-draft-input,
+.recovery-code-list code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.recovery-paste {
+    min-height: 96px;
+}
+.recovery-draft-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    max-height: 260px;
+    margin: 0;
+    overflow: auto;
+    padding: 0;
+    list-style: none;
+}
+.recovery-draft-list li,
+.recovery-add-line {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+}
+.recovery-draft-list .input,
+.recovery-add-line .input {
+    min-width: 0;
+    flex: 1;
+}
+.recovery-ignored {
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+.recovery-ignored summary {
+    cursor: pointer;
+    font-weight: 650;
+}
+.recovery-ignored ul {
+    display: grid;
+    gap: 4px;
+    max-height: 180px;
+    margin: 8px 0 0;
+    overflow: auto;
+    padding: 0;
+    list-style: none;
+}
+.recovery-ignored li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.recovery-ignored li span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.recovery-remaining {
+    margin: 0;
+    color: var(--success);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+.recovery-remaining-low {
+    color: var(--warning);
+}
+.recovery-code-list {
+    display: grid;
+    gap: 6px;
+    max-height: 360px;
+    margin: 0;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-muted);
+    padding: 8px;
+    list-style: none;
+}
+.recovery-code-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    border-radius: 6px;
+    background: var(--surface);
+    padding: 4px 4px 4px 10px;
+}
+.recovery-code-list code {
+    overflow: hidden;
+    color: var(--text);
+    font-size: 0.875rem;
+    text-overflow: ellipsis;
+}
+.recovery-code-used code {
+    color: var(--subtle);
+    text-decoration: line-through;
+}
+.recovery-code-state {
+    color: var(--muted);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+}
+.recovery-code-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.recovery-remove-link {
+    justify-self: start;
+    border: 0;
+    background: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+.recovery-remove-link:hover {
+    text-decoration: underline;
+}
+@media (max-width: 560px) {
+    .recovery-draft-list {
+        grid-template-columns: 1fr;
+    }
+    .recovery-code-list li {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .recovery-code-state {
+        display: none;
+    }
+}
 .security-center-card {
     overflow: hidden;
     padding: 0;

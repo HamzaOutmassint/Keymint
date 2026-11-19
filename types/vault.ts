@@ -1,3 +1,5 @@
+import type { RecoveryCodeSetV1 } from "@/lib/vault-crypto";
+
 export type Category = {
   id: string;
   name: string;
@@ -23,6 +25,8 @@ export type Credential = {
   updatedAt: string;
   passwordUpdatedAt: string;
   lastViewed?: string | null;
+  /** Third-party 2FA recovery codes; decrypted client memory only, like `password`. */
+  recoveryCodes?: RecoveryCodeSetV1 | null;
   category?: Pick<Category, "id" | "name" | "color" | "icon"> | null;
 };
 export type Activity = {

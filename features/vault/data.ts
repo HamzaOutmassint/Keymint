@@ -62,6 +62,7 @@ function materialize(payloads: VaultPayloadBase[], envelopes: VaultRecordEnvelop
       updatedAt: item.updatedAt,
       passwordUpdatedAt: item.value.passwordUpdatedAt,
       lastViewed: item.value.lastViewedAt,
+      recoveryCodes: item.value.recoveryCodes ?? null,
       category: category ? { id: category.id, name: category.name, color: category.color, icon: category.icon } : null,
     };
   });
@@ -155,6 +156,16 @@ export function useVaultMutations() {
     saveRecord: save,
     saveCredential: (value: CredentialValueV1, id?: string) => save("credential", value, id),
     saveCategory: (value: CategoryValueV1, id?: string) => save("category", value, id),
+    /**
+     * Applies `update` to the latest decrypted credential value in the cache,
+     * not a possibly stale UI copy, so quick successive edits (for example
+     * marking several recovery codes used) never overwrite each other.
+     */
+    updateCredential: async (id: string, update: (value: CredentialValueV1) => CredentialValueV1) => {
+      const existing = current(id);
+      if (!existing || existing.type !== "credential") throw new Error("Encrypted vault record was not found");
+      return save("credential", update((existing as CredentialPayloadV1).value), id);
+    },
     remove: async (id: string) => {
       const existing = current(id);
       if (!existing) throw new Error("Encrypted vault record was not found");
