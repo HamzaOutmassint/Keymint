@@ -12,6 +12,8 @@ export const ACTIVITY_DESCRIPTIONS = {
   PASSWORD_CREATED: "Created a vault credential.",
   PASSWORD_EDITED: "Updated a vault credential.",
   PASSWORD_DELETED: "Deleted a vault credential.",
+  RECOVERY_CODES_VIEWED: "Viewed credential recovery codes.",
+  RECOVERY_CODE_COPIED: "Copied a credential recovery code.",
   CATEGORY_CREATED: "Created a vault category.",
   CATEGORY_DELETED: "Deleted a vault category.",
   SETTINGS_CHANGED: "Updated account security preferences.",

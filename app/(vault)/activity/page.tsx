@@ -28,6 +28,8 @@ import type { Activity } from "@/types/vault";
 const iconFor: Record<string, typeof ViewIcon> = {
   PASSWORD_VIEWED: ViewIcon,
   PASSWORD_COPIED: ViewIcon,
+  RECOVERY_CODES_VIEWED: ViewIcon,
+  RECOVERY_CODE_COPIED: ViewIcon,
   LOGIN: Login03Icon,
   FAILED_LOGIN: Alert02Icon,
   FAILED_MASTER_VERIFICATION: Alert02Icon,

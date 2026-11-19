@@ -82,6 +82,7 @@ async function main() {
         password: "Sl4ck-Demo!881",
         category: "Work",
         favorite: true,
+        recoveryCodes: ["demo1-a1b2c", "demo2-d3e4f", "demo3-g5h6i", "demo4-j7k8l", "demo5-m9n0p"],
       },
       {
         name: "Bank Portal",
@@ -107,6 +108,9 @@ async function main() {
           passwordUpdatedAt: nowIso,
           username: credential.username,
           website: credential.website,
+          ...(credential.recoveryCodes
+            ? { recoveryCodes: { codes: credential.recoveryCodes.map((code) => ({ code, usedAt: null })), updatedAt: nowIso } }
+            : {}),
         },
       })).envelope);
     }

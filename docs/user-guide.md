@@ -71,6 +71,19 @@ Click **Add new password** in the sidebar, or the **+** button on mobile. Each e
 
 For each entry you can reveal or copy the password, edit it, mark it as a favourite, or delete it. Copied passwords are cleared from the clipboard after 30 seconds where the browser allows it.
 
+### Recovery codes
+
+When you turn on two-factor authentication for another service, it usually gives you a list of one-time recovery codes, often as a `.txt` file. To keep them in Keymint:
+
+1. Edit the matching entry (or create one) and click **Add codes** under **Recovery codes**.
+2. Drop the `.txt` file onto the panel, choose it, or paste the codes. The file is read in your browser and never uploaded.
+3. Check the detected codes. You can fix or remove any of them, and add back lines Keymint skipped, such as a code with no digits.
+4. Click **Use these codes**, then save the entry.
+
+Entries with codes show how many are left, such as **7/10 codes**. Click the key icon on the entry to see the list. From there you can copy a code, mark it as used, download the unused codes, or replace the whole set when the service gives you new ones. Keymint warns you when two or fewer codes, or 20% or less, remain.
+
+Recovery codes are included in encrypted `.kmvault` backups but **not** in CSV exports.
+
 ## Folders and search
 
 - **Dashboard** shows your counts, recent entries, and favourites.

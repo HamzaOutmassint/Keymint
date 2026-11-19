@@ -6,6 +6,7 @@ import {
   Copy01Icon,
   Delete02Icon,
   Edit02Icon,
+  Key01Icon,
   Mail01Icon,
   StarIcon,
   ViewIcon,
@@ -13,13 +14,15 @@ import {
 import { Icon } from "@/components/icons";
 import { Button, IconButton, Modal } from "@/components/ui";
 import { CredentialFormModal } from "./credential-form-modal";
+import { RecoveryCodesViewer } from "./recovery-codes-viewer";
 import type { Credential } from "@/types/vault";
 import { copySensitiveText } from "@/features/security/clipboard";
 import { useVaultMutations } from "@/features/vault/data";
 import type { CredentialValueV1 } from "@/lib/vault-crypto";
 import { logClientActivity } from "@/features/activity/log-client";
+import { isRecoveryCodeSetLow, remainingRecoveryCodes, withRecoveryCodes } from "@/lib/recovery-codes";
 
-type Purpose = "view" | "copy" | "edit" | "delete";
+type Purpose = "view" | "copy" | "edit" | "delete" | "codes";
 
 function formatPasswordUpdatedAt(value: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -46,6 +49,8 @@ export function CredentialRow({
   const [busy, setBusy] = useState(false);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [copyBusy, setCopyBusy] = useState(false);
+  const [codesOpen, setCodesOpen] = useState(false);
+  const recoveryCodes = credential.recoveryCodes ?? null;
   function closeVerify() {
     setPurpose(null);
     setSecret(null);
@@ -53,13 +58,14 @@ export function CredentialRow({
   }
 
   function value(overrides: Partial<CredentialValueV1> = {}): CredentialValueV1 {
-    return {
+    // Carry recovery codes through so unrelated edits never drop them.
+    return withRecoveryCodes({
       categoryId: credential.categoryId ?? null, email: credential.email ?? "",
       favorite: credential.favorite, lastViewedAt: credential.lastViewed ?? null,
       name: credential.name, notes: credential.notes ?? "", password: credential.password,
       passwordUpdatedAt: credential.passwordUpdatedAt, username: credential.username,
       website: credential.website ?? "", ...overrides,
-    };
+    }, overrides.recoveryCodes ?? recoveryCodes);
   }
 
   async function verify(action = purpose) {
@@ -67,7 +73,11 @@ export function CredentialRow({
     setBusy(true);
     try {
       if (action === "delete") setConfirmDelete(true);
-      else if (action === "edit") {
+      else if (action === "codes") {
+        setCodesOpen(true);
+        closeVerify();
+        await logClientActivity("RECOVERY_CODES_VIEWED");
+      } else if (action === "edit") {
         setEditData(credential);
         closeVerify();
       } else if (action === "copy") {
@@ -132,7 +142,19 @@ export function CredentialRow({
             <Icon icon={Mail01Icon} size={18} />
           </span>
           <span className="credential-copy">
-            <span className="credential-name">{credential.name}</span>
+            <span className="credential-title-line">
+              <span className="credential-name">{credential.name}</span>
+              {recoveryCodes && (
+                <span
+                  className={`recovery-badge ${isRecoveryCodeSetLow(recoveryCodes) ? "recovery-badge-low" : ""}`.trim()}
+                  title={`${remainingRecoveryCodes(recoveryCodes)} of ${recoveryCodes.codes.length} recovery codes unused`}
+                >
+                  {remainingRecoveryCodes(recoveryCodes) === 0
+                    ? "No codes left"
+                    : `${remainingRecoveryCodes(recoveryCodes)}/${recoveryCodes.codes.length} codes`}
+                </span>
+              )}
+            </span>
             <span className="credential-user">
               {credential.username || credential.email || "No username saved"}
             </span>
@@ -167,6 +189,12 @@ export function CredentialRow({
           >
             <Icon icon={Copy01Icon} size={18} />
           </IconButton>
+          {!quickActions && recoveryCodes && <IconButton
+            label={`Show ${credential.name} recovery codes`}
+            onClick={() => setPurpose("codes")}
+          >
+            <Icon icon={Key01Icon} size={18} />
+          </IconButton>}
           {!quickActions && <IconButton
             label={`Edit ${credential.name}`}
             onClick={() => setPurpose("edit")}
@@ -213,6 +241,8 @@ export function CredentialRow({
                 ? `Revealing ${credential.name} password`
                 : purpose === "edit"
                   ? `Unlocking ${credential.name} for editing`
+                  : purpose === "codes"
+                    ? `Unlocking ${credential.name} recovery codes`
                   : `Verifying deletion of ${credential.name}`
         }
         footer={
@@ -278,6 +308,11 @@ export function CredentialRow({
           </p>
         )}
       </Modal>}
+      {!quickActions && <RecoveryCodesViewer
+        credential={credential}
+        open={codesOpen}
+        onClose={() => setCodesOpen(false)}
+      />}
       {!quickActions && <CredentialFormModal
         open={!!editData}
         edit={editData ?? undefined}

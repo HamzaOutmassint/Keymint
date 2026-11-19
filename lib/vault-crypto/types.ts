@@ -129,7 +129,26 @@ export interface VaultPayloadBase extends JsonObject {
   value: JsonObject;
 }
 
-export interface CredentialValueV1 extends JsonObject {
+/** One third-party 2FA recovery code; `usedAt` is set when the user marks it spent. */
+export interface RecoveryCodeV1 extends JsonObject {
+  code: string;
+  usedAt: string | null;
+}
+
+/** The recovery codes a third-party service issued for a credential's account. */
+export interface RecoveryCodeSetV1 extends JsonObject {
+  codes: RecoveryCodeV1[];
+  updatedAt: string;
+}
+
+/**
+ * A credential value. `recoveryCodes` is omitted entirely (never null) when the
+ * credential has no stored codes, so records written before the field existed
+ * remain valid byte-for-byte.
+ */
+export type CredentialValueV1 = CredentialFieldsV1 & { recoveryCodes?: RecoveryCodeSetV1 };
+
+export interface CredentialFieldsV1 extends JsonObject {
   categoryId: string | null;
   email: string;
   favorite: boolean;
